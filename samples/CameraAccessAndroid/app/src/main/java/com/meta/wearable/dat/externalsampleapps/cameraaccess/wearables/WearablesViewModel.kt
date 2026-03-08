@@ -168,11 +168,15 @@ class WearablesViewModel(application: Application) : AndroidViewModel(applicatio
         state.isStreaming -> { error = "Already streaming"; state }
         !state.isRegistered -> { error = "Connect and register glasses first"; state }
         !state.hasActiveDevice -> { error = "No active glasses device"; state }
-        else -> state.copy(isStreaming = true) // claim the slot before launching coroutine
+        else -> state.copy(isStreaming = true, autoStartAI = true)
       }
     }
     error?.let { setRecentError(it); return }
     navigateToStreaming(onRequestWearablesPermission)
+  }
+
+  fun clearAutoStartAI() {
+    _uiState.update { it.copy(autoStartAI = false) }
   }
 
   fun navigateToDeviceSelection() {
