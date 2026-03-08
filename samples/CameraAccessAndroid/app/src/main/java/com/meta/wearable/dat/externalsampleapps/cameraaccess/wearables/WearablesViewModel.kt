@@ -158,6 +158,27 @@ class WearablesViewModel(application: Application) : AndroidViewModel(applicatio
     _uiState.update { it.copy(isStreaming = true, isPhoneMode = true) }
   }
 
+  fun quickStartStreaming(onRequestWearablesPermission: suspend (Permission) -> PermissionStatus) {
+    // Guard checks and the optimistic isStreaming claim are done atomically via update's
+    // compare-and-set loop, preventing a double-invocation race between the guard read and
+    // the coroutine that would otherwise set isStreaming = true asynchronously.
+    var error: String? = null
+    _uiState.update { state ->
+      when {
+        state.isStreaming -> { error = "Already streaming"; state }
+        !state.isRegistered -> { error = "Connect and register glasses first"; state }
+        !state.hasActiveDevice -> { error = "No active glasses device"; state }
+        else -> state.copy(isStreaming = true, autoStartAI = true)
+      }
+    }
+    error?.let { setRecentError(it); return }
+    navigateToStreaming(onRequestWearablesPermission)
+  }
+
+  fun clearAutoStartAI() {
+    _uiState.update { it.copy(autoStartAI = false) }
+  }
+
   fun navigateToDeviceSelection() {
     _uiState.update { it.copy(isStreaming = false, isPhoneMode = false) }
   }

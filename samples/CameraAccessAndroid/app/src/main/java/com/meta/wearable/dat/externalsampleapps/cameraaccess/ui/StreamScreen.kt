@@ -36,6 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.meta.wearable.dat.camera.types.StreamSessionState
 import com.meta.wearable.dat.externalsampleapps.cameraaccess.R
+import com.meta.wearable.dat.externalsampleapps.cameraaccess.gemini.GeminiConfig
 import com.meta.wearable.dat.externalsampleapps.cameraaccess.gemini.GeminiSessionViewModel
 import com.meta.wearable.dat.externalsampleapps.cameraaccess.stream.StreamViewModel
 import com.meta.wearable.dat.externalsampleapps.cameraaccess.stream.StreamingMode
@@ -61,6 +62,7 @@ fun StreamScreen(
     val streamUiState by streamViewModel.uiState.collectAsStateWithLifecycle()
     val geminiUiState by geminiViewModel.uiState.collectAsStateWithLifecycle()
     val webrtcUiState by webrtcViewModel.uiState.collectAsStateWithLifecycle()
+    val wearablesUiState by wearablesViewModel.uiState.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
 
@@ -72,6 +74,14 @@ fun StreamScreen(
     // Wire WebRTC VM to Stream VM for frame forwarding
     LaunchedEffect(webrtcViewModel) {
         streamViewModel.webrtcViewModel = webrtcViewModel
+    }
+
+    // Auto-start Gemini when launched from widget
+    LaunchedEffect(wearablesUiState.autoStartAI) {
+        if (wearablesUiState.autoStartAI && GeminiConfig.isConfigured) {
+            geminiViewModel.startSession()
+            wearablesViewModel.clearAutoStartAI()
+        }
     }
 
     // Start stream or phone camera

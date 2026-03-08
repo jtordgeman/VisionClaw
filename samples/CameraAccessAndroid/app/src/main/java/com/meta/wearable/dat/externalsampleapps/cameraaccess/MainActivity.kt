@@ -13,6 +13,7 @@ import android.Manifest.permission.BLUETOOTH_CONNECT
 import android.Manifest.permission.CAMERA
 import android.Manifest.permission.INTERNET
 import android.Manifest.permission.RECORD_AUDIO
+import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -34,6 +35,9 @@ import kotlinx.coroutines.sync.withLock
 
 class MainActivity : ComponentActivity() {
   companion object {
+    const val ACTION_QUICK_START_STREAMING =
+        "com.meta.wearable.dat.externalsampleapps.cameraaccess.action.QUICK_START_STREAMING"
+
     val PERMISSIONS: Array<String> = arrayOf(
         BLUETOOTH, BLUETOOTH_CONNECT, INTERNET, RECORD_AUDIO, CAMERA,
     )
@@ -85,6 +89,19 @@ class MainActivity : ComponentActivity() {
           onRequestWearablesPermission = ::requestWearablesPermission,
       )
     }
+
+    handleQuickIntent(intent)
+  }
+
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    setIntent(intent)
+    handleQuickIntent(intent)
+  }
+
+  private fun handleQuickIntent(intent: Intent?) {
+    if (intent?.action != ACTION_QUICK_START_STREAMING) return
+    viewModel.quickStartStreaming(::requestWearablesPermission)
   }
 
   fun checkPermissions(onPermissionsGranted: () -> Unit) {
