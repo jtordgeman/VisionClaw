@@ -69,7 +69,8 @@ class StreamingService : Service() {
       startForeground(
           NOTIFICATION_ID,
           notification,
-          ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE,
+          ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE or
+              ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE,
       )
     } else {
       startForeground(NOTIFICATION_ID, notification)
@@ -131,7 +132,7 @@ class StreamingService : Service() {
       val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
       wakeLock =
           powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG).apply {
-            acquire(10 * 60 * 1000L) // 10 minutes max
+            acquire(35 * 60 * 1000L) // 35 minutes — outlasts the 30-minute session timeout
           }
       Log.d(TAG, "WakeLock acquired")
     }
