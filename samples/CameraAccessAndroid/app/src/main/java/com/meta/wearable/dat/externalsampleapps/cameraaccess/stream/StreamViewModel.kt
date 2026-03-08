@@ -47,6 +47,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class StreamViewModel(
@@ -67,6 +68,7 @@ class StreamViewModel(
 
   private var videoJob: Job? = null
   private var stateJob: Job? = null
+  private var timeoutJob: Job? = null
 
   // VisionClaw additions
   var geminiViewModel: GeminiSessionViewModel? = null
@@ -76,6 +78,12 @@ class StreamViewModel(
   fun startStream() {
     videoJob?.cancel()
     stateJob?.cancel()
+    timeoutJob?.cancel()
+    timeoutJob = viewModelScope.launch {
+      delay(30 * 60 * 1000L) // 30-minute session timeout
+      stopStream()
+      wearablesViewModel.navigateToDeviceSelection()
+    }
 
     // Start foreground service to keep streaming alive in background / screen locked
     StreamingService.start(getApplication())
@@ -134,6 +142,8 @@ class StreamViewModel(
     videoJob = null
     stateJob?.cancel()
     stateJob = null
+    timeoutJob?.cancel()
+    timeoutJob = null
     streamSession?.close()
     streamSession = null
     phoneCameraManager?.stop()
