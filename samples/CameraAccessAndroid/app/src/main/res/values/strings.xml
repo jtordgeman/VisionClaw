@@ -55,6 +55,7 @@
     <string name="getting_started_tip_photo" description="Tip about photo capture">Capture photos by tapping the camera button.</string>
     <string name="getting_started_continue" description="Continue button">Continue</string>
 
-    <!-- Quick settings tile -->
-    <string name="quick_tile_label" description="Quick Settings tile label">VisionClaw</string>
+    <!-- Home screen widget -->
+    <string name="widget_label" description="Home screen widget label">Start Streaming</string>
+    <string name="widget_description" description="Home screen widget description">Tap to start streaming from your glasses</string>
 </resources>

@@ -13,6 +13,7 @@ import android.Manifest.permission.BLUETOOTH_CONNECT
 import android.Manifest.permission.CAMERA
 import android.Manifest.permission.INTERNET
 import android.Manifest.permission.RECORD_AUDIO
+import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -92,13 +93,13 @@ class MainActivity : ComponentActivity() {
     handleQuickIntent(intent)
   }
 
-  override fun onNewIntent(intent: android.content.Intent) {
+  override fun onNewIntent(intent: Intent) {
     super.onNewIntent(intent)
     setIntent(intent)
     handleQuickIntent(intent)
   }
 
-  private fun handleQuickIntent(intent: android.content.Intent?) {
+  private fun handleQuickIntent(intent: Intent?) {
     if (intent?.action != ACTION_QUICK_START_STREAMING) return
     viewModel.quickStartStreaming(::requestWearablesPermission)
   }
