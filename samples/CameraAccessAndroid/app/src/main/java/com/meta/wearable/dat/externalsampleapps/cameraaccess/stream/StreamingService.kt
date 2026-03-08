@@ -69,7 +69,8 @@ class StreamingService : Service() {
       startForeground(
           NOTIFICATION_ID,
           notification,
-          ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE,
+          ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE or
+              ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE,
       )
     } else {
       startForeground(NOTIFICATION_ID, notification)
