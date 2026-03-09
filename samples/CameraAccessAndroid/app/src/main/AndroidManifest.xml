@@ -14,6 +14,12 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="${applicationId}.WIDGET_STATE_BROADCAST" />
+
+    <!-- Signature-level permission so only this app can trigger widget state broadcasts -->
+    <permission
+        android:name="${applicationId}.WIDGET_STATE_BROADCAST"
+        android:protectionLevel="signature" />
 
     <application
         android:allowBackup="false"

@@ -21,11 +21,27 @@ class StreamWidgetProvider : AppWidgetProvider() {
             val ids = manager.getAppWidgetIds(
                 ComponentName(context, StreamWidgetProvider::class.java)
             )
-            val startTime = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .getLong(KEY_START_TIME, 0L)
+            val chronoBase = resolveChronoBase(context)
             for (appWidgetId in ids) {
-                updateWidget(context, manager, appWidgetId, startTime)
+                updateWidget(context, manager, appWidgetId, chronoBase)
             }
+        }
+
+        /**
+         * Converts the stored wall-clock start time to an elapsedRealtime-based Chronometer base.
+         * Returns 0 if idle, or if the stored value is stale (from a previous boot).
+         */
+        private fun resolveChronoBase(context: Context): Long {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val wallClockStart = prefs.getLong(KEY_START_TIME, 0L)
+            if (wallClockStart == 0L) return 0L
+            val millisSinceStart = System.currentTimeMillis() - wallClockStart
+            // If the session started before this boot, the stored value is stale — clear it
+            if (millisSinceStart < 0 || millisSinceStart > SystemClock.elapsedRealtime()) {
+                prefs.edit().putLong(KEY_START_TIME, 0L).apply()
+                return 0L
+            }
+            return SystemClock.elapsedRealtime() - millisSinceStart
         }
 
         private fun updateWidget(
@@ -62,12 +78,12 @@ class StreamWidgetProvider : AppWidgetProvider() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             StreamingService.ACTION_STREAMING_STARTED -> {
-                val startTime = intent.getLongExtra(
+                val wallClock = intent.getLongExtra(
                     StreamingService.EXTRA_START_TIME,
-                    SystemClock.elapsedRealtime()
+                    System.currentTimeMillis()
                 )
                 context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                    .edit().putLong(KEY_START_TIME, startTime).apply()
+                    .edit().putLong(KEY_START_TIME, wallClock).apply()
                 updateAllWidgets(context)
             }
             StreamingService.ACTION_STREAMING_STOPPED -> {
@@ -84,10 +100,9 @@ class StreamWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray,
     ) {
-        val startTime = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .getLong(KEY_START_TIME, 0L)
+        val chronoBase = resolveChronoBase(context)
         for (appWidgetId in appWidgetIds) {
-            updateWidget(context, appWidgetManager, appWidgetId, startTime)
+            updateWidget(context, appWidgetManager, appWidgetId, chronoBase)
         }
     }
 }

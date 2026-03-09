@@ -38,6 +38,8 @@ class StreamingService : Service() {
     const val ACTION_STREAMING_STOPPED =
         "com.meta.wearable.dat.externalsampleapps.cameraaccess.action.STREAMING_STOPPED"
     const val EXTRA_START_TIME = "extra_start_time"
+    private const val BROADCAST_PERMISSION =
+        "com.meta.wearable.dat.externalsampleapps.cameraaccess.WIDGET_STATE_BROADCAST"
 
     fun start(context: Context) {
       val intent =
@@ -86,8 +88,8 @@ class StreamingService : Service() {
 
     sendBroadcast(Intent(ACTION_STREAMING_STARTED).apply {
       `package` = packageName
-      putExtra(EXTRA_START_TIME, SystemClock.elapsedRealtime())
-    })
+      putExtra(EXTRA_START_TIME, System.currentTimeMillis())
+    }, BROADCAST_PERMISSION)
 
     return START_STICKY
   }
@@ -95,7 +97,7 @@ class StreamingService : Service() {
   override fun onDestroy() {
     sendBroadcast(Intent(ACTION_STREAMING_STOPPED).apply {
       `package` = packageName
-    })
+    }, BROADCAST_PERMISSION)
     Log.d(TAG, "Service destroyed")
     releaseWakeLock()
     super.onDestroy()
