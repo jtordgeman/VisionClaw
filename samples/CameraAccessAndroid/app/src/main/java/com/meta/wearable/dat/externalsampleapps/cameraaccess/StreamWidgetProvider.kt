@@ -21,10 +21,41 @@ class StreamWidgetProvider : AppWidgetProvider() {
             val ids = manager.getAppWidgetIds(
                 ComponentName(context, StreamWidgetProvider::class.java)
             )
-            if (ids.isNotEmpty()) {
-                val provider = StreamWidgetProvider()
-                provider.onUpdate(context, manager, ids)
+            val startTime = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getLong(KEY_START_TIME, 0L)
+            for (appWidgetId in ids) {
+                updateWidget(context, manager, appWidgetId, startTime)
             }
+        }
+
+        private fun updateWidget(
+            context: Context,
+            appWidgetManager: AppWidgetManager,
+            appWidgetId: Int,
+            startTime: Long,
+        ) {
+            val tapIntent = PendingIntent.getActivity(
+                context,
+                0,
+                Intent(context, MainActivity::class.java).apply {
+                    action = MainActivity.ACTION_QUICK_START_STREAMING
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                },
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+
+            val views = if (startTime > 0L) {
+                RemoteViews(context.packageName, R.layout.widget_stream_live).apply {
+                    setChronometer(R.id.elapsed_time, startTime, null, true)
+                    setOnClickPendingIntent(R.id.widget_root, tapIntent)
+                }
+            } else {
+                RemoteViews(context.packageName, R.layout.widget_stream).apply {
+                    setOnClickPendingIntent(R.id.widget_root, tapIntent)
+                }
+            }
+
+            appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }
 
@@ -58,35 +89,5 @@ class StreamWidgetProvider : AppWidgetProvider() {
         for (appWidgetId in appWidgetIds) {
             updateWidget(context, appWidgetManager, appWidgetId, startTime)
         }
-    }
-
-    private fun updateWidget(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetId: Int,
-        startTime: Long,
-    ) {
-        val tapIntent = PendingIntent.getActivity(
-            context,
-            0,
-            Intent(context, MainActivity::class.java).apply {
-                action = MainActivity.ACTION_QUICK_START_STREAMING
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            },
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-
-        val views = if (startTime > 0L) {
-            RemoteViews(context.packageName, R.layout.widget_stream_live).apply {
-                setChronometer(R.id.elapsed_time, startTime, null, true)
-                setOnClickPendingIntent(R.id.widget_root, tapIntent)
-            }
-        } else {
-            RemoteViews(context.packageName, R.layout.widget_stream).apply {
-                setOnClickPendingIntent(R.id.widget_root, tapIntent)
-            }
-        }
-
-        appWidgetManager.updateAppWidget(appWidgetId, views)
     }
 }
