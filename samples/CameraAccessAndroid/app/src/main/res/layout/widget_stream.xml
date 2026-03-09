@@ -3,24 +3,34 @@
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#CC000000"
+    android:background="@drawable/widget_bg"
     android:gravity="center"
-    android:orientation="horizontal"
-    android:padding="8dp">
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:theme="@android:style/Theme.DeviceDefault.DayNight">
 
     <ImageView
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:contentDescription="@string/widget_label"
-        android:src="@drawable/ic_widget_stream" />
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/smart_glasses_icon"
+        android:tint="?android:attr/textColorPrimary"
+        android:contentDescription="@string/widget_label" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginTop="10dp"
         android:text="@string/widget_label"
-        android:textColor="#FFFFFF"
+        android:textColor="?android:attr/textColorPrimary"
         android:textSize="14sp"
         android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="@string/app_name"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="11sp" />
 
 </LinearLayout>

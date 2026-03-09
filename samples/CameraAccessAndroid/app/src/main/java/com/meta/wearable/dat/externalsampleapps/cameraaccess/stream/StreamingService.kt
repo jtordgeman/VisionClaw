@@ -15,6 +15,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.meta.wearable.dat.externalsampleapps.cameraaccess.MainActivity
 import com.meta.wearable.dat.externalsampleapps.cameraaccess.R
+import com.meta.wearable.dat.externalsampleapps.cameraaccess.StreamWidgetProvider
 
 /**
  * Foreground service that keeps the camera streaming alive when the screen is locked
@@ -32,7 +33,6 @@ class StreamingService : Service() {
     private const val CHANNEL_NAME = "Camera Streaming"
     private const val NOTIFICATION_ID = 1001
     private const val WAKELOCK_TAG = "VisionClaw::StreamingWakeLock"
-
     fun start(context: Context) {
       val intent =
           Intent(context, StreamingService::class.java).apply { `package` = context.packageName }
@@ -78,10 +78,13 @@ class StreamingService : Service() {
 
     acquireWakeLock()
 
+    StreamWidgetProvider.notifyStreamingStarted(this)
+
     return START_STICKY
   }
 
   override fun onDestroy() {
+    StreamWidgetProvider.notifyStreamingStopped(this)
     Log.d(TAG, "Service destroyed")
     releaseWakeLock()
     super.onDestroy()
