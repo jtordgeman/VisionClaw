@@ -11,6 +11,7 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
+import android.os.SystemClock
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.meta.wearable.dat.externalsampleapps.cameraaccess.MainActivity
@@ -32,6 +33,11 @@ class StreamingService : Service() {
     private const val CHANNEL_NAME = "Camera Streaming"
     private const val NOTIFICATION_ID = 1001
     private const val WAKELOCK_TAG = "VisionClaw::StreamingWakeLock"
+    const val ACTION_STREAMING_STARTED =
+        "com.meta.wearable.dat.externalsampleapps.cameraaccess.action.STREAMING_STARTED"
+    const val ACTION_STREAMING_STOPPED =
+        "com.meta.wearable.dat.externalsampleapps.cameraaccess.action.STREAMING_STOPPED"
+    const val EXTRA_START_TIME = "extra_start_time"
 
     fun start(context: Context) {
       val intent =
@@ -78,10 +84,18 @@ class StreamingService : Service() {
 
     acquireWakeLock()
 
+    sendBroadcast(Intent(ACTION_STREAMING_STARTED).apply {
+      `package` = packageName
+      putExtra(EXTRA_START_TIME, SystemClock.elapsedRealtime())
+    })
+
     return START_STICKY
   }
 
   override fun onDestroy() {
+    sendBroadcast(Intent(ACTION_STREAMING_STOPPED).apply {
+      `package` = packageName
+    })
     Log.d(TAG, "Service destroyed")
     releaseWakeLock()
     super.onDestroy()
