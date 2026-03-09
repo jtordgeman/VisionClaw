@@ -13,7 +13,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:src="@drawable/smart_glasses_icon"
-        android:tint="?android:attr/colorPrimary"
+        android:tint="?android:attr/textColorPrimary"
         android:contentDescription="@string/widget_label" />
 
     <TextView
