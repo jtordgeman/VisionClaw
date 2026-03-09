@@ -11,11 +11,11 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
-import android.os.SystemClock
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.meta.wearable.dat.externalsampleapps.cameraaccess.MainActivity
 import com.meta.wearable.dat.externalsampleapps.cameraaccess.R
+import com.meta.wearable.dat.externalsampleapps.cameraaccess.StreamWidgetProvider
 
 /**
  * Foreground service that keeps the camera streaming alive when the screen is locked
@@ -33,14 +33,6 @@ class StreamingService : Service() {
     private const val CHANNEL_NAME = "Camera Streaming"
     private const val NOTIFICATION_ID = 1001
     private const val WAKELOCK_TAG = "VisionClaw::StreamingWakeLock"
-    const val ACTION_STREAMING_STARTED =
-        "com.meta.wearable.dat.externalsampleapps.cameraaccess.action.STREAMING_STARTED"
-    const val ACTION_STREAMING_STOPPED =
-        "com.meta.wearable.dat.externalsampleapps.cameraaccess.action.STREAMING_STOPPED"
-    const val EXTRA_START_TIME = "extra_start_time"
-    private const val BROADCAST_PERMISSION =
-        "com.meta.wearable.dat.externalsampleapps.cameraaccess.WIDGET_STATE_BROADCAST"
-
     fun start(context: Context) {
       val intent =
           Intent(context, StreamingService::class.java).apply { `package` = context.packageName }
@@ -86,18 +78,13 @@ class StreamingService : Service() {
 
     acquireWakeLock()
 
-    sendBroadcast(Intent(ACTION_STREAMING_STARTED).apply {
-      `package` = packageName
-      putExtra(EXTRA_START_TIME, System.currentTimeMillis())
-    }, BROADCAST_PERMISSION)
+    StreamWidgetProvider.notifyStreamingStarted(this)
 
     return START_STICKY
   }
 
   override fun onDestroy() {
-    sendBroadcast(Intent(ACTION_STREAMING_STOPPED).apply {
-      `package` = packageName
-    }, BROADCAST_PERMISSION)
+    StreamWidgetProvider.notifyStreamingStopped(this)
     Log.d(TAG, "Service destroyed")
     releaseWakeLock()
     super.onDestroy()

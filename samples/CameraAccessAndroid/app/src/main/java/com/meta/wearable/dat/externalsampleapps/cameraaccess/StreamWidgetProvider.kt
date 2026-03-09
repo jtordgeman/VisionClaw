@@ -8,13 +8,24 @@ import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
 import android.widget.RemoteViews
-import com.meta.wearable.dat.externalsampleapps.cameraaccess.stream.StreamingService
 
 class StreamWidgetProvider : AppWidgetProvider() {
 
     companion object {
         private const val PREFS_NAME = "StreamWidgetPrefs"
         private const val KEY_START_TIME = "pref_stream_start_time"
+
+        fun notifyStreamingStarted(context: Context) {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit().putLong(KEY_START_TIME, System.currentTimeMillis()).apply()
+            updateAllWidgets(context)
+        }
+
+        fun notifyStreamingStopped(context: Context) {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit().putLong(KEY_START_TIME, 0L).apply()
+            updateAllWidgets(context)
+        }
 
         fun updateAllWidgets(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
@@ -72,26 +83,6 @@ class StreamWidgetProvider : AppWidgetProvider() {
             }
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
-        }
-    }
-
-    override fun onReceive(context: Context, intent: Intent) {
-        when (intent.action) {
-            StreamingService.ACTION_STREAMING_STARTED -> {
-                val wallClock = intent.getLongExtra(
-                    StreamingService.EXTRA_START_TIME,
-                    System.currentTimeMillis()
-                )
-                context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                    .edit().putLong(KEY_START_TIME, wallClock).apply()
-                updateAllWidgets(context)
-            }
-            StreamingService.ACTION_STREAMING_STOPPED -> {
-                context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                    .edit().putLong(KEY_START_TIME, 0L).apply()
-                updateAllWidgets(context)
-            }
-            else -> super.onReceive(context, intent)
         }
     }
 
