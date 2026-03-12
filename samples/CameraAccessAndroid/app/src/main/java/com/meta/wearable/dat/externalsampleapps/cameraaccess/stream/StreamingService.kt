@@ -8,14 +8,21 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.media.session.MediaSession
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import android.util.Log
+import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
 import com.meta.wearable.dat.externalsampleapps.cameraaccess.MainActivity
 import com.meta.wearable.dat.externalsampleapps.cameraaccess.R
 import com.meta.wearable.dat.externalsampleapps.cameraaccess.StreamWidgetProvider
+import com.meta.wearable.dat.externalsampleapps.cameraaccess.gemini.GlassesButtonChannel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /**
  * Foreground service that keeps the camera streaming alive when the screen is locked
@@ -51,6 +58,8 @@ class StreamingService : Service() {
   }
 
   private var wakeLock: PowerManager.WakeLock? = null
+  private var mediaSession: MediaSession? = null
+  private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
   override fun onBind(intent: Intent?): IBinder? = null
 
@@ -58,6 +67,7 @@ class StreamingService : Service() {
     super.onCreate()
     Log.d(TAG, "Service created")
     createNotificationChannel()
+    setupMediaSession()
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -87,6 +97,8 @@ class StreamingService : Service() {
     StreamWidgetProvider.notifyStreamingStopped(this)
     Log.d(TAG, "Service destroyed")
     releaseWakeLock()
+    mediaSession?.release()
+    mediaSession = null
     super.onDestroy()
   }
 
@@ -149,5 +161,43 @@ class StreamingService : Service() {
       }
     }
     wakeLock = null
+  }
+
+  private fun setupMediaSession() {
+    val session = MediaSession(this, TAG)
+    var buttonDownAt = 0L
+
+    session.setCallback(object : MediaSession.Callback() {
+      override fun onMediaButtonEvent(mediaButtonIntent: Intent): Boolean {
+        val keyEvent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+          mediaButtonIntent.getParcelableExtra(Intent.EXTRA_KEY_EVENT, KeyEvent::class.java)
+        } else {
+          @Suppress("DEPRECATION")
+          mediaButtonIntent.getParcelableExtra(Intent.EXTRA_KEY_EVENT)
+        } ?: return false
+
+        val isTargetKey = keyEvent.keyCode == KeyEvent.KEYCODE_HEADSETHOOK ||
+            keyEvent.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
+        if (!isTargetKey) return false
+
+        Log.d(TAG, "Button key event: action=${keyEvent.action} keyCode=${keyEvent.keyCode}")
+
+        when (keyEvent.action) {
+          KeyEvent.ACTION_DOWN -> buttonDownAt = System.currentTimeMillis()
+          KeyEvent.ACTION_UP -> {
+            val duration = System.currentTimeMillis() - buttonDownAt
+            val event = if (duration < 800) GlassesButtonChannel.Event.SHORT_PRESS
+                        else GlassesButtonChannel.Event.LONG_PRESS
+            Log.d(TAG, "Button event: $event (held ${duration}ms)")
+            serviceScope.launch { GlassesButtonChannel.events.emit(event) }
+          }
+        }
+        return true
+      }
+    })
+
+    session.isActive = true
+    mediaSession = session
+    Log.d(TAG, "MediaSession created and active")
   }
 }

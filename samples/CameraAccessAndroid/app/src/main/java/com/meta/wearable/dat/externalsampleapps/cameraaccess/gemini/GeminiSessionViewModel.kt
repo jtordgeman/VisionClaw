@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
 
 data class GeminiUiState(
     val isGeminiActive: Boolean = false,
@@ -44,6 +45,22 @@ class GeminiSessionViewModel : ViewModel() {
     private var stateObservationJob: Job? = null
 
     var streamingMode: StreamingMode = StreamingMode.GLASSES
+
+    init {
+        viewModelScope.launch {
+            GlassesButtonChannel.events.collect { event ->
+                Log.d(TAG, "Glasses button event received: $event")
+                when (event) {
+                    GlassesButtonChannel.Event.SHORT_PRESS -> {
+                        if (!_uiState.value.isGeminiActive) startSession()
+                    }
+                    GlassesButtonChannel.Event.LONG_PRESS -> {
+                        if (_uiState.value.isGeminiActive) stopSession()
+                    }
+                }
+            }
+        }
+    }
 
     fun startSession() {
         if (_uiState.value.isGeminiActive) return
