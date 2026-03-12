@@ -185,6 +185,7 @@ class StreamingService : Service() {
         when (keyEvent.action) {
           KeyEvent.ACTION_DOWN -> if (keyEvent.repeatCount == 0) buttonDownAt = System.currentTimeMillis()
           KeyEvent.ACTION_UP -> {
+            if (buttonDownAt == 0L) return true // no paired ACTION_DOWN — ignore
             val duration = System.currentTimeMillis() - buttonDownAt
             buttonDownAt = 0L
             val event = if (duration < 800) GlassesButtonChannel.Event.SHORT_PRESS
