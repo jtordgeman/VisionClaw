@@ -22,6 +22,7 @@ import com.meta.wearable.dat.externalsampleapps.cameraaccess.gemini.GlassesButto
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /**
@@ -99,6 +100,7 @@ class StreamingService : Service() {
     releaseWakeLock()
     mediaSession?.release()
     mediaSession = null
+    serviceScope.cancel()
     super.onDestroy()
   }
 
