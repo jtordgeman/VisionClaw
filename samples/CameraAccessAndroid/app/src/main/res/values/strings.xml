@@ -56,7 +56,7 @@
     <string name="getting_started_continue" description="Continue button">Continue</string>
 
     <!-- App name -->
-    <string name="app_name">VisionClaw</string>
+    <string name="app_name">VisionClaw Dev</string>
 
     <!-- Home screen widget -->
     <string name="widget_label" description="Home screen widget label">Start Streaming</string>

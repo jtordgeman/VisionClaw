@@ -19,7 +19,7 @@ android {
   buildFeatures { buildConfig = true }
 
   defaultConfig {
-    applicationId = "com.meta.wearable.dat.externalsampleapps.cameraaccess"
+    applicationId = "com.meta.wearable.dat.externalsampleapps.cameraaccess.dev"
     minSdk = 31
     targetSdk = 34
     versionCode = 1
